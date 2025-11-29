@@ -1,17 +1,22 @@
 import { GoogleGenAI } from "@google/genai";
 import { Transaction } from '../types';
 
-// Initialize the API client
-// Note: process.env.API_KEY is replaced by Vite during build time via define config
+// Inicialização segura
 // @ts-ignore
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = process.env.API_KEY;
+// Só cria o cliente se a chave existir
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 export const analyzeFinances = async (
   transactions: Transaction[], 
   userQuery: string
 ): Promise<string> => {
   try {
-    // Serialize transactions to provide context
+    // Verificação de segurança
+    if (!ai) {
+      return "⚠️ Configuração Pendente: A Chave de API do Google Gemini não foi encontrada. Por favor, configure a variável 'API_KEY' no painel do Netlify.";
+    }
+
     const transactionContext = JSON.stringify(transactions);
 
     const prompt = `
@@ -45,6 +50,6 @@ export const analyzeFinances = async (
 
   } catch (error) {
     console.error("Gemini API Error:", error);
-    return "Ocorreu um erro ao consultar a IA. Verifique se sua chave de API está configurada corretamente nas variáveis de ambiente.";
+    return "Ocorreu um erro ao consultar a IA. Verifique se sua chave de API está válida.";
   }
 };
